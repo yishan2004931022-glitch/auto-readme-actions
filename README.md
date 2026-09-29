@@ -20,7 +20,28 @@ do not edit it by hand. `validate-markers.yml` fails CI if either marker goes mi
 ## Repository activity
 
 <!-- ACTIVITY:START -->
-_This section is generated automatically. The first workflow run will replace it._
+
+_Last updated: 2026-09-29 15:15 UTC by [update-readme.yml](../../actions/workflows/update-readme.yml)._
+
+### Latest commits
+
+| Commit | Message | Date |
+| --- | --- | --- |
+| [`21f3047`](https://github.com/yishan2004931022-glitch/auto-readme-actions/commit/21f3047dbc7e3b87a99baa79d13bddf762ef8155) | feat: auto-update README activity section (#2) | 2026-09-29 |
+| [`5e4afef`](https://github.com/yishan2004931022-glitch/auto-readme-actions/commit/5e4afefc6a78c1823759b152e35c4d3d840e3ad5) | Initial commit | 2026-09-29 |
+
+### Recent pull requests
+
+| PR | Title | State |
+| --- | --- | --- |
+| [#2](https://github.com/yishan2004931022-glitch/auto-readme-actions/pull/2) | feat: auto-update README activity section | merged |
+
+### Recent issues
+
+| Issue | Title | State |
+| --- | --- | --- |
+| [#1](https://github.com/yishan2004931022-glitch/auto-readme-actions/issues/1) | Automate the README activity section via GitHub Actions | closed |
+
 <!-- ACTIVITY:END -->
 
 ## Local development
