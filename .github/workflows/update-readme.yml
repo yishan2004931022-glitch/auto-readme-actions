@@ -1,0 +1,56 @@
+name: Update README
+
+# Three triggers: a daily cron, every push to main that is not the bot's own
+# README commit, and a manual button for demos.
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  push:
+    branches: [main]
+    paths-ignore:
+      - "README.md"
+      - ".cache/**"
+  workflow_dispatch:
+
+# Least privilege: this job may write repository contents and nothing else.
+permissions:
+  contents: write
+
+# Never let two runs push to main at the same time.
+concurrency:
+  group: update-readme
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          # REPO_TOKEN is the repo-scoped PAT stored as a secret; github.token is
+          # the fallback so the workflow still runs in forks without the secret.
+          token: ${{ secrets.REPO_TOKEN || github.token }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Render activity section
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN || github.token }}
+          REPO: ${{ github.repository }}
+        run: python scripts/update_readme.py
+
+      - name: Commit only when something changed
+        run: |
+          if git diff --quiet -- README.md .cache/activity.json; then
+            echo "No changes - skipping commit (workflow is idempotent)"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md .cache/activity.json
+          git commit -m "chore(readme): refresh activity section [skip ci]"
+          git push

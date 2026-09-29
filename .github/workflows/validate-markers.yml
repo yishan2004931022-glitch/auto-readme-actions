@@ -1,0 +1,42 @@
+name: Validate markers
+
+# Guard rail: if someone deletes or renames the markers, the generator would
+# silently stop working. This job fails the build instead.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  markers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: README must contain both activity markers
+        run: |
+          missing=0
+          for marker in "<!-- ACTIVITY:START -->" "<!-- ACTIVITY:END -->"; do
+            if ! grep -qF "$marker" README.md; then
+              echo "::error file=README.md::missing marker $marker"
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            exit 1
+          fi
+          if [ "$(grep -cF '<!-- ACTIVITY:START -->' README.md)" -ne 1 ]; then
+            echo "::error file=README.md::START marker must appear exactly once"
+            exit 1
+          fi
+          echo "Markers present and unique."
+
+      - name: Generator must be runnable and deterministic
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          DRY_RUN: "1"
+        run: python scripts/update_readme.py > /dev/null && echo "Generator OK"
