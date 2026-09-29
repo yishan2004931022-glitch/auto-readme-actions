@@ -1,0 +1,49 @@
+name: Preview README update
+
+# On every PR, render what the activity section *would* look like and post it
+# as a sticky comment, so a reviewer can see the effect before merging.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Render preview
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          DRY_RUN: "1"
+        run: |
+          {
+            echo "<!-- readme-preview -->"
+            echo "### Preview of the generated README section"
+            echo
+            python scripts/update_readme.py
+          } > preview.md
+
+      - name: Post or update the sticky comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          existing=$(gh api "repos/$REPO/issues/$PR/comments" \
+            --jq '[.[] | select(.body | startswith("<!-- readme-preview -->"))][0].id')
+          if [ -n "$existing" ] && [ "$existing" != "null" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F body=@preview.md > /dev/null
+            echo "Updated existing preview comment"
+          else
+            gh api -X POST "repos/$REPO/issues/$PR/comments" -F body=@preview.md > /dev/null
+            echo "Posted new preview comment"
+          fi
